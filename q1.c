@@ -123,13 +123,13 @@ int main(int argc, char** argv)
         min_cost = searchMinPath(graph, n, vertices[i], vertices, rank, optimalPath);
         printf("Minimum path from process %d is %d\n", rank, min_cost); 
     }
-
+    MPI_Barrier(MPI_COMM_WORLD);
     int final_min_cost;
     MPI_Allreduce(&min_cost, &final_min_cost, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
     
     if (min_cost == final_min_cost && rank != 0) { // This process has the optimal path and is not the root
         // Send the optimal path to the root process
-        MPI_Send(optimalPath, n-1, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD);
+        MPI_Send(optimalPath, n-1, MPI_INT, 0, 0, MPI_COMM_WORLD);
     }
     else if (min_cost == final_min_cost && rank == 0) { // This process has the optimal path and is the root
         printf("--Final Minimum Cost: %d\n", final_min_cost);
