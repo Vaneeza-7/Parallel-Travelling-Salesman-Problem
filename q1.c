@@ -90,6 +90,20 @@ int main(int argc, char** argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     
+    /*int n = 8;
+    int graph[8][8] = {
+        { 0, 51, 61, 79, 84, 30, 69, 47},
+        {51,  0, 88, 58, 98, 48, 76, 45},
+        {61, 88,  0, 64, 75, 33, 50, 67},
+        {79, 58, 64,  0, 59, 78, 47, 50},
+        {84, 98, 75, 59,  0, 35, 34, 69},
+        {30, 48, 33, 78, 35,  0, 47, 23},
+        {69, 76, 50, 47, 34, 47,  0, 49},
+        {47, 45, 67, 50, 69, 23, 49,  0}
+    };
+    int s = 0;
+    int vertices[8] = {0, 1, 2, 3, 4, 5, 6, 7};*/
+
     int n = 4;
     int graph[4][4] = { {0, 10, 15, 20},
                         {10, 0, 35, 25},
@@ -98,6 +112,7 @@ int main(int argc, char** argv)
                       };
     int s = 0;
     int vertices[4] = {0, 1, 2, 3};
+
 
     //domain decomposition of graph into different subsets
     int vertex_per_process = (n-1) / size;
@@ -122,7 +137,7 @@ int main(int argc, char** argv)
     for(int i=start; i<=end; i++){
         printf("Process %d: %d\n", rank, vertices[i]);
         //each process explores different paths
-        cur_min_cost = searchMinPath(graph, n, vertices[i], vertices, rank, optimalPath);
+        cur_min_cost = searchMinPath(graph, n, s, vertices, rank, optimalPath);
         if (cur_min_cost < min_cost) {
             min_cost = cur_min_cost;
         }
@@ -150,9 +165,9 @@ int main(int argc, char** argv)
 
 // Root process: Receive the path from the process that has the minimum cost (if it wasn't the root itself)
 if (rank == 0 && final_min_cost != min_cost) {
-    int temp_optimalPath[n-1];
+    int temp_optimalPath[n+1];
     MPI_Status status;
-    MPI_Recv(temp_optimalPath, n-1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(temp_optimalPath, n+1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
     printf("--Final Minimum Cost: %d\n", final_min_cost);
     printf("--Optimal path from process %d: ", status.MPI_SOURCE);
     for (int j = 0; j < n+1; j++) {
